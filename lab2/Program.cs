@@ -6,19 +6,20 @@ namespace lab2
     {
         static async Task Main(string[] args)
         {
-            var domain = "kpi.eu.auth0.com";
+            var domain = "dev-jeiftr0g0eqxoi0m.us.auth0.com";
 
             var auth0Client = new AuthClient(domain);
 
-            var audience = "https://kpi.eu.auth0.com/api/v2/";
-            var clientId = "JIvCO5c2IBHlAe2patn6l6q5H35qxti0";
-            var clientSecret = "ZRF8Op0tWM36p1_hxXTU-B0K_Gq_-eAVtlrQpY24CasYiDmcXBhNS6IJMNcz1EgB";
+            var audience = "https://dev-jeiftr0g0eqxoi0m.us.auth0.com/api/v2/";
+            var clientId = "YTtpQheSXcPkavvQf31K5eqlg4W7EFo9";
+            var clientSecret = "X8t8tFe6tebdPPhmtzkV8k0JCucBifB0muQ7Id1toxhgJtG50ObNZg8tMGw3Dxat";
+
             var token = await auth0Client.GetToken(audience, clientId, clientSecret);
             Console.WriteLine("Access Token: " + token);
 
             User user = new User()
             {
-                email = "myuser21124r748@example.com",
+                email = "testUser@example.com",
                 blocked = false,
                 email_verified = false,
                 given_name = "test given name",
@@ -30,9 +31,16 @@ namespace lab2
                 password = "Password1111."
             };
 
-            var createdUser = await auth0Client.CreateUser(user, token);
-            Console.WriteLine("User created successfully!");
-            Console.WriteLine("User ID: " + createdUser.user_id);
+            //var createUserResult = await auth0Client.CreateUser(user, token);
+            //Console.WriteLine(createUserResult);
+
+            var getUserTokenResponse = await auth0Client.GetUserToken(audience, clientId, clientSecret, user.email, user.password);
+            Console.WriteLine(getUserTokenResponse);
+
+            string refreshToken = JsonConvert.DeserializeObject<UserTokenResponse>(getUserTokenResponse).refresh_token;
+
+            var refreshTokenResponse = await auth0Client.GetRefreshToken(audience, clientId, clientSecret, refreshToken);
+            Console.WriteLine(refreshTokenResponse);
         }
     }
 }

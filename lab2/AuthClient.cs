@@ -1,4 +1,5 @@
 ﻿using Newtonsoft.Json;
+using System;
 using System.Text;
 
 namespace lab2
@@ -60,8 +61,120 @@ namespace lab2
                 }
                 else
                 {
-                    var responseContent = await response.Content.ReadAsStringAsync();
                     throw new HttpRequestException($"Failed to create user: {response.StatusCode}");
+                }
+            }
+        }
+
+        public async Task<dynamic> GetUserToken(string audience, string clientId, string clientSecret, string username, string userPassword)
+        {
+            if (string.IsNullOrEmpty(audience))
+            {
+                throw new ArgumentNullException(nameof(audience));
+            }
+
+            if (string.IsNullOrEmpty(clientId))
+            {
+                throw new ArgumentNullException(nameof(clientId));
+            }
+
+            if (string.IsNullOrEmpty(clientSecret))
+            {
+                throw new ArgumentNullException(nameof(clientSecret));
+            }
+
+            if (string.IsNullOrEmpty(username))
+            {
+                throw new ArgumentNullException(nameof(username));
+            }
+
+            if (string.IsNullOrEmpty(userPassword))
+            {
+                throw new ArgumentNullException(nameof(userPassword));
+            }
+
+            string url = $"https://{_domain}/oauth/token";
+
+            using (HttpClient client = new HttpClient())
+            {
+                var parameters = new Dictionary<string, string>
+                {
+                    { "grant_type", "password" },
+                    { "scope", "offline_access" },
+                    { "username", username },
+                    { "password", userPassword },
+                    { "client_id", clientId },
+                    { "client_secret", clientSecret },
+                    { "audience", audience }
+                };
+
+                HttpResponseMessage response = await client.PostAsync(url, new FormUrlEncodedContent(parameters));
+
+                if (response.IsSuccessStatusCode)
+                {
+                    string responseBody = await response.Content.ReadAsStringAsync();
+                    Console.WriteLine("Success Response:");
+                    Console.WriteLine(responseBody);
+                    return responseBody;
+                }
+                else
+                {
+                    var responseContent = await response.Content.ReadAsStringAsync();
+                    Console.WriteLine($"Exception: {response.StatusCode}");
+                    throw new HttpRequestException();
+                }
+            }
+        }
+
+        public async Task<dynamic> GetRefreshToken(string audience, string clientId, string clientSecret, string refreshToken)
+        {
+            if (string.IsNullOrEmpty(audience))
+            {
+                throw new ArgumentNullException(nameof(audience));
+            }
+
+            if (string.IsNullOrEmpty(clientId))
+            {
+                throw new ArgumentNullException(nameof(clientId));
+            }
+
+            if (string.IsNullOrEmpty(clientSecret))
+            {
+                throw new ArgumentNullException(nameof(clientSecret));
+            }
+
+            if (string.IsNullOrEmpty(refreshToken))
+            {
+                throw new ArgumentNullException(nameof(refreshToken));
+            }
+
+            string url = $"https://{_domain}/oauth/token";
+
+            using (HttpClient client = new HttpClient())
+            {
+                var parameters = new Dictionary<string, string>
+                {
+                    { "grant_type", "refresh_token" },
+                    { "client_id", clientId },
+                    { "client_secret", clientSecret },
+                    { "audience", audience },
+                    { "refresh_token", refreshToken },
+                };
+
+                HttpResponseMessage response = await client.PostAsync(url, new FormUrlEncodedContent(parameters));
+
+                if (response.IsSuccessStatusCode)
+                {
+                    string responseBody = await response.Content.ReadAsStringAsync();
+                    Console.WriteLine("Success Response:");
+                    Console.WriteLine(responseBody);
+                    return responseBody;
+                }
+                else
+                {
+                    var responseContent = await response.Content.ReadAsStringAsync();
+                    Console.WriteLine($"Exception: {response.StatusCode}");
+                    throw new HttpRequestException();
                 }
             }
         }
